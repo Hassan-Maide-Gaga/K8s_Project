@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, redirect
 
 def create_app():
     app = Flask(__name__) 
@@ -16,5 +16,10 @@ def create_app():
     app.register_blueprint(teachers_bp, url_prefix="/teachers")
     app.register_blueprint(courses_bp, url_prefix="/courses")
     app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
+
+
+    @app.route('/')
+    def home():
+        return redirect('/dashboard/')
 
     return app

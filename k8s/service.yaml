@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gestion-scolaire-service
+spec:
+  selector:
+    app: gestion-scolaire
+  ports:
+  - port: 80
+    targetPort: 5000
+    protocol: TCP
+  type: LoadBalancer  # Pour Minikube/Kind, ou NodePort pour cluster local

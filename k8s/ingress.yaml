@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gestion-scolaire-ingress
+spec:
+  rules:
+  - host: gestion-scolaire.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: gestion-scolaire-service
+            port:
+              number: 80
