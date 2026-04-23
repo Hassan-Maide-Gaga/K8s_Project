@@ -1,0 +1,38 @@
+{% if pagination and pagination.pages > 1 %}
+<div class="flex justify-between items-center mt-6">
+  <div class="text-sm text-gray-500">
+    <i class="fas fa-chart-line mr-1"></i> Page {{ pagination.page }} sur {{ pagination.pages }}
+    {% if pagination.total %}
+    <span class="mx-1">•</span> {{ pagination.total }} résultat(s)
+    {% endif %}
+  </div>
+  <div class="flex gap-2">
+    {% if pagination.has_prev %}
+    <a href="{{ url_for(request.endpoint, page=pagination.prev_num, **request.view_args) }}" 
+       class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all flex items-center gap-1">
+      <i class="fas fa-chevron-left text-sm"></i> Précédent
+    </a>
+    {% endif %}
+    
+    <div class="flex gap-1">
+      {% for p in pagination.pages_to_show %}
+        {% if p == pagination.page %}
+        <span class="px-4 py-2 bg-navy text-white rounded-lg">{{ p }}</span>
+        {% else %}
+        <a href="{{ url_for(request.endpoint, page=p, **request.view_args) }}" 
+           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+          {{ p }}
+        </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+    
+    {% if pagination.has_next %}
+    <a href="{{ url_for(request.endpoint, page=pagination.next_num, **request.view_args) }}" 
+       class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all flex items-center gap-1">
+      Suivant <i class="fas fa-chevron-right text-sm"></i>
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}

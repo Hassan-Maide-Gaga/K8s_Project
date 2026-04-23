@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Nouveau cours{% endblock %}
+{% block page_title %}Nouveau cours{% endblock %}
+
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+  <h2 class="text-xl font-bold text-gray-800">
+    <i class="fas fa-plus text-gold mr-2"></i>
+    Créer un cours
+  </h2>
+  <a href="{{ url_for('courses.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all flex items-center gap-2">
+    <i class="fas fa-arrow-left"></i> Retour
+  </a>
+</div>
+
+<div class="max-w-lg">
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <form method="POST" action="{{ url_for('courses.add') }}" id="create-course-form">
+      <div class="mb-6">
+        <label class="block text-sm font-semibold text-gray-700 mb-2">Titre du cours</label>
+        <input type="text" name="title" id="course-title" placeholder="Ex : Algorithmique avancée" required
+               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all">
+      </div>
+      
+      <div class="flex gap-3 pt-2">
+        <button type="submit" id="submit-btn" class="flex-1 px-4 py-2 bg-navy text-white rounded-lg hover:bg-navy/90 transition-all">
+          <i class="fas fa-check mr-2"></i> Créer le cours
+        </button>
+        <a href="{{ url_for('courses.index') }}" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all text-center">
+          Annuler
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('create-course-form')?.addEventListener('submit', function(e) {
+  const title = document.getElementById('course-title').value.trim();
+  if (!title) {
+    e.preventDefault();
+    alert('Veuillez saisir un titre de cours');
+    return;
+  }
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Création...';
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Cours{% endblock %}
+{% block page_title %}Cours{% endblock %}
+
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h2 class="text-xl font-bold text-gray-800">
+      <i class="fas fa-book-open text-gold mr-2"></i>
+      Catalogue des cours
+      <span class="text-sm font-normal text-gray-500 ml-2">{{ courses|length }} cours</span>
+    </h2>
+  </div>
+  <a href="{{ url_for('courses.new') }}" class="px-4 py-2 bg-navy text-white rounded-lg hover:bg-navy/90 transition-all flex items-center gap-2 shadow-sm">
+    <i class="fas fa-plus"></i> Nouveau cours
+  </a>
+</div>
+
+{% if courses %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Titre du cours</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Enseignant</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Étudiants</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for c in courses %}
+        <tr class="hover:bg-gray-50 transition-all" id="course-row-{{ c.id }}">
+          <td class="px-6 py-4 text-sm text-gray-500">{{ c.id }}</td>
+          <td class="px-6 py-4">
+            <span class="font-medium text-gray-800">{{ c.title }}</span>
+          </td>
+          <td class="px-6 py-4">
+            {% if c.teacher_id %}
+              <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full"><i class="fas fa-check mr-1"></i> Assigné</span>
+            {% else %}
+              <span class="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-full">Non assigné</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4">
+            <span class="px-2 py-1 bg-navy/10 text-navy text-xs rounded-full">
+              <i class="fas fa-users mr-1"></i> {{ c.student_ids|length }}
+            </span>
+          </td>
+          <td class="px-6 py-4">
+            {% if c.teacher_id and c.student_ids|length > 0 %}
+              <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Complet</span>
+            {% elif c.teacher_id %}
+              <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full">Sans étudiants</span>
+            {% else %}
+              <span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">Incomplet</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex gap-2">
+              <a href="{{ url_for('courses.show', course_id=c.id) }}" class="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all text-sm flex items-center gap-1">
+                <i class="fas fa-cog"></i> Gérer
+              </a>
+              <button onclick="confirmDeleteCourse('{{ url_for('courses.delete', course_id=c.id) }}', 'course-row-{{ c.id }}', '{{ c.title }}')" 
+                      class="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all text-sm">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% else %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+  <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+    <i class="fas fa-book-open text-gray-400 text-3xl"></i>
+  </div>
+  <p class="text-gray-500 mb-4">Aucun cours enregistré pour le moment.</p>
+  <a href="{{ url_for('courses.new') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-navy text-white rounded-lg hover:bg-navy/90 transition-all">
+    <i class="fas fa-plus"></i> Créer le premier cours
+  </a>
+</div>
+{% endif %}
+
+<!-- Modal de confirmation de suppression -->
+<div id="modal-delete-course" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" style="display:none">
+  <div class="bg-white rounded-xl w-full max-w-md mx-4 shadow-2xl">
+    <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+      <h3 class="text-xl font-bold text-gray-800">
+        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Confirmer la suppression
+      </h3>
+      <button class="text-gray-400 hover:text-gray-600 transition-all" onclick="closeDeleteModal()">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <div class="p-6">
+      <p class="text-gray-600 mb-6" id="delete-course-message">Voulez-vous vraiment supprimer ce cours ?</p>
+      <div class="flex gap-3">
+        <form id="delete-course-form" method="POST" style="flex:1">
+          <button type="submit" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all">
+            <i class="fas fa-trash mr-2"></i> Supprimer
+          </button>
+        </form>
+        <button type="button" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+                onclick="closeDeleteModal()">
+          Annuler
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let deleteCourseUrl = '';
+let deleteCourseRowId = '';
+
+function confirmDeleteCourse(actionUrl, rowId, courseTitle) {
+  deleteCourseUrl = actionUrl;
+  deleteCourseRowId = rowId;
+  document.getElementById('delete-course-message').innerHTML = `Voulez-vous vraiment supprimer le cours <strong class="text-red-600">${courseTitle}</strong> ? Cette action est irréversible.`;
+  document.getElementById('delete-course-form').action = actionUrl;
+  document.getElementById('modal-delete-course').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDeleteModal() {
+  document.getElementById('modal-delete-course').style.display = 'none';
+  document.body.style.overflow = 'auto';
+}
+
+document.getElementById('modal-delete-course')?.addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
+
+document.getElementById('delete-course-form')?.addEventListener('submit', function(e) {
+  const btn = this.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Suppression...';
+});
+</script>
+
+{% endblock %}

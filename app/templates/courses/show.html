@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.title }}{% endblock %}
+{% block page_title %}Détail du cours{% endblock %}
+
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+  <h2 class="text-xl font-bold text-gray-800">
+    <i class="fas fa-book-open text-gold mr-2"></i>
+    {{ course.title }}
+    <span class="text-sm font-normal text-gray-500 ml-2">Cours #{{ course.id }}</span>
+  </h2>
+  <a href="{{ url_for('courses.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all flex items-center gap-2">
+    <i class="fas fa-arrow-left"></i> Retour
+  </a>
+</div>
+
+<!-- Grille 2 colonnes -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+  
+  <!-- Enseignant -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-5 border-b border-gray-200 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 bg-gold rounded-full"></div>
+        <h3 class="font-semibold text-gray-800">Enseignant responsable</h3>
+      </div>
+      {% if course.teacher_id %}
+        <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full"><i class="fas fa-check mr-1"></i> Assigné</span>
+      {% else %}
+        <span class="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-full">Non assigné</span>
+      {% endif %}
+    </div>
+    <div class="p-5">
+      <form method="POST" action="{{ url_for('courses.assign_teacher', course_id=course.id) }}" id="assign-teacher-form">
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Sélectionner un enseignant</label>
+          <select name="teacher_id" id="teacher-select" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all">
+            <option value="">— Aucun enseignant —</option>
+            {% for t in teachers %}
+            <option value="{{ t.id }}" {% if course.teacher_id == t.id %}selected{% endif %}>
+              {{ t.name }} — {{ t.specialty }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" id="assign-teacher-btn" class="px-4 py-2 bg-navy text-white rounded-lg hover:bg-navy/90 transition-all inline-flex items-center gap-2">
+          <i class="fas fa-check"></i> Assigner
+        </button>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Étudiants -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-5 border-b border-gray-200 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+        <h3 class="font-semibold text-gray-800">Étudiants inscrits</h3>
+      </div>
+      <span class="px-2 py-1 bg-navy/10 text-navy text-xs rounded-full" id="student-count-badge">
+        <i class="fas fa-users mr-1"></i> {{ course.student_ids|length }}
+      </span>
+    </div>
+    <div class="p-5">
+      <form method="POST" action="{{ url_for('courses.assign_students', course_id=course.id) }}" id="assign-students-form">
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-3">Sélectionner les étudiants</label>
+          <div class="space-y-2 max-h-80 overflow-y-auto" id="students-list">
+            {% for s in students %}
+            <label class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all cursor-pointer student-item">
+              <input type="checkbox" name="student_ids" value="{{ s.id }}"
+                     {% if s.id in course.student_ids %}checked{% endif %}
+                     class="mt-1 w-4 h-4 text-navy rounded border-gray-300 focus:ring-gold student-checkbox"
+                     data-student-id="{{ s.id }}"
+                     data-student-name="{{ s.name }}">
+              <div class="flex-1 min-w-0">
+                <div class="font-medium text-gray-800">{{ s.name }}</div>
+                <div class="text-xs text-gray-500">{{ s.email }}</div>
+              </div>
+              {% if s.id in course.student_ids %}
+                <span class="student-badge px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Inscrit</span>
+              {% endif %}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        <button type="submit" id="assign-students-btn" class="px-4 py-2 bg-navy text-white rounded-lg hover:bg-navy/90 transition-all inline-flex items-center gap-2">
+          <i class="fas fa-users"></i> Mettre à jour
+        </button>
+      </form>
+    </div>
+  </div>
+  
+</div>
+
+<!-- Zone dangereuse -->
+<div class="bg-white rounded-xl shadow-sm border border-red-200 p-5">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <div class="font-semibold text-red-600 mb-1">
+        <i class="fas fa-exclamation-triangle mr-2"></i> Zone dangereuse
+      </div>
+      <div class="text-sm text-gray-500">La suppression est définitive et irréversible.</div>
+    </div>
+    <button onclick="confirmCourseDelete()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all flex items-center gap-2">
+      <i class="fas fa-trash"></i> Supprimer le cours
+    </button>
+  </div>
+</div>
+
+<!-- Modal de confirmation de suppression du cours -->
+<div id="modal-delete-course-final" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" style="display:none">
+  <div class="bg-white rounded-xl w-full max-w-md mx-4 shadow-2xl">
+    <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+      <h3 class="text-xl font-bold text-gray-800">
+        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Confirmer la suppression
+      </h3>
+      <button class="text-gray-400 hover:text-gray-600 transition-all" onclick="closeDeleteConfirmModal()">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <div class="p-6">
+      <p class="text-gray-600 mb-6">Voulez-vous vraiment supprimer définitivement le cours <strong class="text-red-600">{{ course.title }}</strong> ?</p>
+      <div class="flex gap-3">
+        <form method="POST" action="{{ url_for('courses.delete', course_id=course.id) }}" style="flex:1" id="final-delete-form">
+          <button type="submit" id="final-delete-btn" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all">
+            <i class="fas fa-trash mr-2"></i> Supprimer définitivement
+          </button>
+        </form>
+        <button type="button" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+                onclick="closeDeleteConfirmModal()">
+          Annuler
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function confirmCourseDelete() {
+  document.getElementById('modal-delete-course-final').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDeleteConfirmModal() {
+  document.getElementById('modal-delete-course-final').style.display = 'none';
+  document.body.style.overflow = 'auto';
+}
+
+document.getElementById('modal-delete-course-final')?.addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteConfirmModal();
+});
+
+document.getElementById('final-delete-form')?.addEventListener('submit', function(e) {
+  const btn = document.getElementById('final-delete-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Suppression...';
+});
+
+// Auto-update student count badge when checkboxes change
+function updateStudentCount() {
+  const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+  const count = checkboxes.length;
+  const badge = document.getElementById('student-count-badge');
+  if (badge) {
+    badge.innerHTML = '<i class="fas fa-users mr-1"></i> ' + count;
+  }
+}
+
+document.querySelectorAll('.student-checkbox').forEach(cb => {
+  cb.addEventListener('change', updateStudentCount);
+});
+
+// Handle form submissions with loading state
+document.getElementById('assign-teacher-form')?.addEventListener('submit', function(e) {
+  const btn = document.getElementById('assign-teacher-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Assignation...';
+});
+
+document.getElementById('assign-students-form')?.addEventListener('submit', function(e) {
+  const btn = document.getElementById('assign-students-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mise à jour...';
+});
+</script>
+
+{% endblock %}

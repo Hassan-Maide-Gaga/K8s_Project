@@ -1,0 +1,24 @@
+<form method="POST" action="{{ url_for('courses.assign_students', course_id=course.id) }}">
+  <div class="mb-4">
+    <label class="block text-sm font-semibold text-gray-700 mb-3">Sélectionner les étudiants</label>
+    <div class="space-y-2 max-h-80 overflow-y-auto">
+      {% for s in students %}
+      <label class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all cursor-pointer">
+        <input type="checkbox" name="student_ids" value="{{ s.id }}"
+               {% if s.id in course.student_ids %}checked{% endif %}
+               class="mt-1 w-4 h-4 text-navy rounded border-gray-300 focus:ring-gold">
+        <div class="flex-1 min-w-0">
+          <div class="font-medium text-gray-800">{{ s.name }}</div>
+          <div class="text-xs text-gray-500">{{ s.email }}</div>
+        </div>
+        {% if s.id in course.student_ids %}
+          <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Inscrit</span>
+        {% endif %}
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+  <button type="submit" class="px-4 py-2 bg-navy text-white rounded-lg hover:bg-navy/90 transition-all inline-flex items-center gap-2">
+    <i class="fas fa-users"></i> Mettre à jour
+  </button>
+</form>

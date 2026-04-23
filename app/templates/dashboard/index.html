@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- ═══ STAT CARDS ════════════════════════════════════════════ -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+  
+  <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-all duration-300">
+    <div class="flex justify-between items-start">
+      <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+        <i class="fas fa-user-graduate text-2xl"></i>
+      </div>
+      <span class="text-white/80 text-sm"><i class="fas fa-circle text-[0.4rem] mr-1"></i> Actifs</span>
+    </div>
+    <div class="mt-4">
+      <div class="text-3xl font-bold" id="total-students">{{ total_students }}</div>
+      <div class="text-white/80 text-sm">Étudiants inscrits</div>
+    </div>
+  </div>
+  
+  <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-all duration-300">
+    <div class="flex justify-between items-start">
+      <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+        <i class="fas fa-chalkboard-teacher text-2xl"></i>
+      </div>
+      <span class="text-white/80 text-sm"><i class="fas fa-circle text-[0.4rem] mr-1"></i> Actifs</span>
+    </div>
+    <div class="mt-4">
+      <div class="text-3xl font-bold" id="total-teachers">{{ total_teachers }}</div>
+      <div class="text-white/80 text-sm">Enseignants</div>
+    </div>
+  </div>
+  
+  <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 text-white shadow-lg transform hover:scale-105 transition-all duration-300">
+    <div class="flex justify-between items-start">
+      <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+        <i class="fas fa-book-open text-2xl"></i>
+      </div>
+      <span class="text-white/80 text-sm"><i class="fas fa-circle text-[0.4rem] mr-1"></i> En cours</span>
+    </div>
+    <div class="mt-4">
+      <div class="text-3xl font-bold" id="total-courses">{{ total_courses }}</div>
+      <div class="text-white/80 text-sm">Cours disponibles</div>
+    </div>
+  </div>
+  
+</div>
+
+<!-- ═══ MAIN GRID ════════════════════════════════════════════ -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+  
+  <!-- Accès rapide + Vue d'ensemble -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 bg-navy rounded-full"></div>
+        <h3 class="font-semibold text-gray-800">Accès rapide</h3>
+      </div>
+    </div>
+    
+    <div class="p-6 space-y-4">
+      <a href="{{ url_for('students.index') }}" class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all group">
+        <div class="w-12 h-12 bg-navy/10 rounded-lg flex items-center justify-center group-hover:bg-navy/20 transition-all">
+          <i class="fas fa-user-graduate text-navy text-xl"></i>
+        </div>
+        <div class="flex-1">
+          <div class="font-semibold text-gray-800">Étudiants</div>
+          <div class="text-sm text-gray-500">Gérer les inscriptions</div>
+        </div>
+        <i class="fas fa-chevron-right text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+      </a>
+      
+      <a href="{{ url_for('teachers.index') }}" class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all group">
+        <div class="w-12 h-12 bg-gold/10 rounded-lg flex items-center justify-center group-hover:bg-gold/20 transition-all">
+          <i class="fas fa-chalkboard-teacher text-gold text-xl"></i>
+        </div>
+        <div class="flex-1">
+          <div class="font-semibold text-gray-800">Enseignants</div>
+          <div class="text-sm text-gray-500">Gérer les profils</div>
+        </div>
+        <i class="fas fa-chevron-right text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+      </a>
+      
+      <a href="{{ url_for('courses.index') }}" class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all group">
+        <div class="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center group-hover:bg-blue-500/20 transition-all">
+          <i class="fas fa-book-open text-blue-500 text-xl"></i>
+        </div>
+        <div class="flex-1">
+          <div class="font-semibold text-gray-800">Cours</div>
+          <div class="text-sm text-gray-500">Gérer le catalogue</div>
+        </div>
+        <i class="fas fa-chevron-right text-gray-400 group-hover:translate-x-1 transition-transform"></i>
+      </a>
+    </div>
+    
+    <!-- Vue d'ensemble -->
+    <div class="p-6 border-t border-gray-200">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-2 h-2 bg-gold rounded-full"></div>
+        <h3 class="font-semibold text-gray-800">Vue d'ensemble</h3>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <div class="flex justify-between text-sm mb-2">
+            <span class="text-gray-600"><i class="fas fa-user-graduate text-blue-500 mr-2"></i>Étudiants</span>
+            <span class="text-gray-800 font-medium" id="overview-students">{{ total_students }} inscrits</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div class="bg-navy h-2 rounded-full transition-all" style="width: {% if total_students > 0 %}{{ [total_students*10, 100]|min }}{% else %}4{% endif %}%"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-2">
+            <span class="text-gray-600"><i class="fas fa-chalkboard-teacher text-gold mr-2"></i>Enseignants</span>
+            <span class="text-gray-800 font-medium" id="overview-teachers">{{ total_teachers }} actifs</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div class="bg-gold h-2 rounded-full transition-all" style="width: {% if total_teachers > 0 %}{{ [total_teachers*15, 100]|min }}{% else %}4{% endif %}%"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-2">
+            <span class="text-gray-600"><i class="fas fa-book-open text-blue-500 mr-2"></i>Cours</span>
+            <span class="text-gray-800 font-medium" id="overview-courses">{{ total_courses }} disponibles</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div class="bg-blue-500 h-2 rounded-full transition-all" style="width: {% if total_courses > 0 %}{{ [total_courses*12, 100]|min }}{% else %}4{% endif %}%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Derniers cours -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+        <h3 class="font-semibold text-gray-800">Derniers cours</h3>
+      </div>
+      <a href="{{ url_for('courses.index') }}" class="text-sm text-gray-500 hover:text-gray-700 transition-all">
+        Voir tout <i class="fas fa-arrow-right ml-1"></i>
+      </a>
+    </div>
+    
+    <div class="p-6" id="recent-courses">
+      {% if courses %}
+        <div class="space-y-3">
+          {% for c in courses[-5:] | reverse %}
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all">
+            <div class="w-10 h-10 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
+              <i class="fas fa-book text-gray-500"></i>
+            </div>
+            <div class="flex-1">
+              <div class="font-medium text-gray-800">{{ c.title }}</div>
+              <div class="text-xs text-gray-500">{{ c.student_ids|length }} étudiant(s)</div>
+            </div>
+            {% if c.teacher_id %}
+              <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Assigné</span>
+            {% else %}
+              <span class="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-full">Sans prof</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-12">
+          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-book-open text-gray-400 text-2xl"></i>
+          </div>
+          <p class="text-gray-500 mb-4">Aucun cours enregistré.</p>
+          <a href="{{ url_for('courses.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-navy text-white rounded-lg hover:bg-navy/90 transition-all">
+            <i class="fas fa-plus"></i> Ajouter un cours
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Animate numbers on load
+  function animateNumber(element, start, end, duration) {
+    if (!element) return;
+    let startTime = null;
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const value = Math.floor(progress * (end - start) + start);
+      element.textContent = value;
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }
+  
+  animateNumber(document.getElementById('total-students'), 0, {{ total_students }}, 800);
+  animateNumber(document.getElementById('total-teachers'), 0, {{ total_teachers }}, 800);
+  animateNumber(document.getElementById('total-courses'), 0, {{ total_courses }}, 800);
+</script>
+{% endblock %}

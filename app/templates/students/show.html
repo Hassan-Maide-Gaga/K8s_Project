@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% block title %}{{ student.name }}{% endblock %}
+{% block page_title %}Détail étudiant{% endblock %}
+
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+  <div class="flex items-center gap-4">
+    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+      {{ student.name[0]|upper }}
+    </div>
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800">{{ student.name }}</h2>
+      <div class="flex flex-wrap gap-3 mt-1">
+        <span class="text-sm text-gray-500"><i class="fas fa-envelope mr-1"></i> {{ student.email }}</span>
+        {% if student.matricule %}
+        <span class="text-sm text-gray-500"><i class="fas fa-id-card mr-1"></i> {{ student.matricule }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <a href="{{ url_for('students.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all flex items-center gap-2">
+    <i class="fas fa-arrow-left"></i> Retour
+  </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  
+  <!-- Informations générales -->
+  <div class="lg:col-span-1">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-6">
+      <div class="p-5 border-b border-gray-200">
+        <h3 class="font-semibold text-gray-800 flex items-center gap-2">
+          <i class="fas fa-info-circle text-gold"></i> Informations
+        </h3>
+      </div>
+      <div class="p-5 space-y-4">
+        <div>
+          <div class="text-xs text-gray-500 uppercase mb-1">Date d'inscription</div>
+          <div class="text-gray-800">{{ student.created_at.strftime('%d/%m/%Y') if student.created_at else 'N/A' }}</div>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 uppercase mb-1">Statut</div>
+          <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Actif</span>
+        </div>
+        <div>
+          <div class="text-xs text-gray-500 uppercase mb-1">Cours suivis</div>
+          <div class="text-2xl font-bold text-gray-800" id="courses-count">{{ student.courses|length }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Cours inscrits -->
+  <div class="lg:col-span-2">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="p-5 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="font-semibold text-gray-800 flex items-center gap-2">
+          <i class="fas fa-book-open text-blue-500"></i> Cours inscrits
+        </h3>
+        <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full" id="courses-badge">{{ student.courses|length }} cours</span>
+      </div>
+      <div class="divide-y divide-gray-200" id="courses-list">
+        {% if student.courses %}
+          {% for course in student.courses %}
+          <div class="p-4 hover:bg-gray-50 transition-all" id="course-item-{{ course.id }}">
+            <div class="flex items-center justify-between">
+              <div class="flex-1">
+                <a href="{{ url_for('courses.show', course_id=course.id) }}" class="font-medium text-gray-800 hover:text-gold transition-all">
+                  {{ course.title }}
+                </a>
+                <div class="text-sm text-gray-500 mt-1">
+                  {% if course.teacher %}
+                    Enseignant : {{ course.teacher.name }}
+                  {% else %}
+                    <span class="text-amber-600">Enseignant non assigné</span>
+                  {% endif %}
+                </div>
+              </div>
+              <button onclick="confirmUnenroll({{ student.id }}, {{ course.id }}, '{{ course.title }}')" 
+                      class="px-3 py-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all text-sm">
+                <i class="fas fa-user-minus"></i> Désinscrire
+              </button>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="p-8 text-center">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <i class="fas fa-book-open text-gray-400 text-xl"></i>
+            </div>
+            <p class="text-gray-500">Cet étudiant n'est inscrit à aucun cours.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Inscription à un cours -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
+      <div class="p-5 border-b border-gray-200">
+        <h3 class="font-semibold text-gray-800 flex items-center gap-2">
+          <i class="fas fa-plus-circle text-green-500"></i> Inscrire à un cours
+        </h3>
+      </div>
+      <div class="p-5">
+        <form method="POST" action="{{ url_for('students.enroll', student_id=student.id) }}" id="enroll-form">
+          <div class="flex gap-3">
+            <select name="course_id" id="course-select" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all" required>
+              <option value="">-- Sélectionner un cours --</option>
+              {% for course in available_courses %}
+              <option value="{{ course.id }}">{{ course.title }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" id="enroll-btn" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all">
+              <i class="fas fa-user-plus"></i> Inscrire
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+<!-- Modal de confirmation de désinscription -->
+<div id="modal-unenroll" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" style="display:none">
+  <div class="bg-white rounded-xl w-full max-w-md mx-4 shadow-2xl">
+    <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+      <h3 class="text-xl font-bold text-gray-800">
+        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Confirmer la désinscription
+      </h3>
+      <button class="text-gray-400 hover:text-gray-600 transition-all" onclick="closeUnenrollModal()">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <div class="p-6">
+      <p class="text-gray-600 mb-6" id="unenroll-message">Voulez-vous vraiment désinscrire cet étudiant ?</p>
+      <div class="flex gap-3">
+        <form id="unenroll-form" method="POST" style="flex:1">
+          <button type="submit" id="unenroll-btn" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all">
+            <i class="fas fa-user-minus mr-2"></i> Désinscrire
+          </button>
+        </form>
+        <button type="button" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+                onclick="closeUnenrollModal()">
+          Annuler
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let unenrollStudentId = null;
+let unenrollCourseId = null;
+
+function confirmUnenroll(studentId, courseId, courseTitle) {
+  unenrollStudentId = studentId;
+  unenrollCourseId = courseId;
+  document.getElementById('unenroll-message').innerHTML = `Voulez-vous vraiment désinscrire cet étudiant du cours <strong class="text-red-600">${courseTitle}</strong> ?`;
+  document.getElementById('unenroll-form').action = `/students/${studentId}/unenroll/${courseId}`;
+  document.getElementById('modal-unenroll').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeUnenrollModal() {
+  document.getElementById('modal-unenroll').style.display = 'none';
+  document.body.style.overflow = 'auto';
+}
+
+document.getElementById('modal-unenroll')?.addEventListener('click', function(e) {
+  if (e.target === this) closeUnenrollModal();
+});
+
+document.getElementById('unenroll-form')?.addEventListener('submit', function(e) {
+  const btn = document.getElementById('unenroll-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Désinscription...';
+});
+
+document.getElementById('enroll-form')?.addEventListener('submit', function(e) {
+  const select = document.getElementById('course-select');
+  if (!select.value) {
+    e.preventDefault();
+    alert('Veuillez sélectionner un cours');
+    return;
+  }
+  const btn = document.getElementById('enroll-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Inscription...';
+});
+</script>
+
+{% endblock %}

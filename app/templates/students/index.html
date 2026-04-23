@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% block title %}Étudiants{% endblock %}
+{% block page_title %}Étudiants{% endblock %}
+
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h2 class="text-xl font-bold text-gray-800">
+      <i class="fas fa-user-graduate text-gold mr-2"></i>
+      Liste des étudiants
+      <span class="text-sm font-normal text-gray-500 ml-2">{{ students|length }} étudiants</span>
+    </h2>
+  </div>
+  <button class="px-4 py-2 bg-navy text-white rounded-lg hover:bg-navy/90 transition-all flex items-center gap-2 shadow-sm" onclick="openStudentModal('modal-create')">
+    <i class="fas fa-plus"></i> Ajouter
+  </button>
+</div>
+
+{% if students %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Étudiant</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Matricule</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Cours suivis</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for s in students %}
+        <tr class="hover:bg-gray-50 transition-all" id="student-row-{{ s.id }}">
+          <td class="px-6 py-4 text-sm text-gray-500">{{ s.id }}</td>
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                {{ s.name[0]|upper }}
+              </div>
+              <span class="font-medium text-gray-800">{{ s.name }}</span>
+            </div>
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-600">{{ s.email }}</td>
+          <td class="px-6 py-4">
+            <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-mono rounded">{{ s.matricule or 'N/A' }}</span>
+          </td>
+          <td class="px-6 py-4">
+            <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+              <i class="fas fa-book mr-1"></i> {{ s.courses|length }}
+            </span>
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex gap-2">
+              <button onclick="openEditModal({{ s.id }}, '{{ s.name }}', '{{ s.email }}', '{{ s.matricule or '' }}')" 
+                      class="px-3 py-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all text-sm flex items-center gap-1">
+                <i class="fas fa-edit"></i> Modifier
+              </button>
+              <button onclick="confirmDeleteStudent('{{ url_for('students.delete', student_id=s.id) }}', 'student-row-{{ s.id }}', '{{ s.name }}')" 
+                      class="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all text-sm">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination -->
+{% if pagination and pagination.pages > 1 %}
+<div class="flex justify-between items-center mt-6">
+  <div class="text-sm text-gray-500">
+    <i class="fas fa-chart-line mr-1"></i> Page {{ pagination.page }} sur {{ pagination.pages }}
+    {% if pagination.total %}
+    <span class="mx-1">•</span> {{ pagination.total }} résultat(s)
+    {% endif %}
+  </div>
+  <div class="flex gap-2">
+    {% if pagination.has_prev %}
+    <a href="{{ url_for('students.index', page=pagination.prev_num) }}" 
+       class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all flex items-center gap-1">
+      <i class="fas fa-chevron-left text-sm"></i> Précédent
+    </a>
+    {% endif %}
+    <div class="flex gap-1">
+      {% for p in pagination.pages_to_show %}
+        {% if p == pagination.page %}
+        <span class="px-4 py-2 bg-navy text-white rounded-lg">{{ p }}</span>
+        {% else %}
+        <a href="{{ url_for('students.index', page=p) }}" 
+           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+          {{ p }}
+        </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% if pagination.has_next %}
+    <a href="{{ url_for('students.index', page=pagination.next_num) }}" 
+       class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all flex items-center gap-1">
+      Suivant <i class="fas fa-chevron-right text-sm"></i>
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+  <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+    <i class="fas fa-user-graduate text-gray-400 text-3xl"></i>
+  </div>
+  <p class="text-gray-500 mb-4">Aucun étudiant enregistré pour le moment.</p>
+  <button class="inline-flex items-center gap-2 px-4 py-2 bg-navy text-white rounded-lg hover:bg-navy/90 transition-all" onclick="openStudentModal('modal-create')">
+    <i class="fas fa-plus"></i> Ajouter le premier étudiant
+  </button>
+</div>
+{% endif %}
+
+<!-- MODAL Ajouter -->
+<div id="modal-create" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" style="display:none">
+  <div class="bg-white rounded-xl w-full max-w-md mx-4 shadow-2xl transform transition-all">
+    <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+      <h3 class="text-xl font-bold text-gray-800">
+        <i class="fas fa-plus text-gold mr-2"></i> Nouvel étudiant
+      </h3>
+      <button class="text-gray-400 hover:text-gray-600 transition-all" onclick="closeStudentModal('modal-create')">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <div class="p-6">
+      <form method="POST" action="{{ url_for('students.create') }}" id="create-student-form">
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Nom complet</label>
+          <input type="text" name="name" id="student-name" placeholder="Ex : Jean Dupont" required
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Adresse email</label>
+          <input type="email" name="email" id="student-email" placeholder="Ex : jean.dupont@edu.com" required
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all">
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Matricule</label>
+          <input type="text" name="matricule" id="student-matricule" placeholder="Ex : 20240001" 
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all">
+        </div>
+        <div class="flex gap-3">
+          <button type="submit" id="create-student-btn" class="flex-1 px-4 py-2 bg-navy text-white rounded-lg hover:bg-navy/90 transition-all">
+            <i class="fas fa-check mr-2"></i> Ajouter
+          </button>
+          <button type="button" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+                  onclick="closeStudentModal('modal-create')">
+            Annuler
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL Modifier -->
+<div id="modal-edit" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" style="display:none">
+  <div class="bg-white rounded-xl w-full max-w-md mx-4 shadow-2xl">
+    <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+      <h3 class="text-xl font-bold text-gray-800">
+        <i class="fas fa-edit text-gold mr-2"></i> Modifier l'étudiant
+      </h3>
+      <button class="text-gray-400 hover:text-gray-600 transition-all" onclick="closeStudentModal('modal-edit')">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <div class="p-6">
+      <form id="edit-form" method="POST" action="" id="edit-student-form">
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Nom complet</label>
+          <input type="text" id="edit-name" name="name" required
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Adresse email</label>
+          <input type="email" id="edit-email" name="email" required
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all">
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Matricule</label>
+          <input type="text" id="edit-matricule" name="matricule"
+                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 transition-all">
+        </div>
+        <div class="flex gap-3">
+          <button type="submit" id="edit-submit-btn" class="flex-1 px-4 py-2 bg-navy text-white rounded-lg hover:bg-navy/90 transition-all">
+            <i class="fas fa-save mr-2"></i> Enregistrer
+          </button>
+          <button type="button" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+                  onclick="closeStudentModal('modal-edit')">
+            Annuler
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div id="modal-delete-student" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" style="display:none">
+  <div class="bg-white rounded-xl w-full max-w-md mx-4 shadow-2xl">
+    <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+      <h3 class="text-xl font-bold text-gray-800">
+        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Confirmer la suppression
+      </h3>
+      <button class="text-gray-400 hover:text-gray-600 transition-all" onclick="closeDeleteStudentModal()">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <div class="p-6">
+      <p class="text-gray-600 mb-6" id="delete-student-message">Voulez-vous vraiment supprimer cet étudiant ?</p>
+      <div class="flex gap-3">
+        <form id="delete-student-form" method="POST" style="flex:1">
+          <button type="submit" id="delete-student-btn" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all">
+            <i class="fas fa-trash mr-2"></i> Supprimer
+          </button>
+        </form>
+        <button type="button" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+                onclick="closeDeleteStudentModal()">
+          Annuler
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let deleteStudentUrl = '';
+let deleteStudentRowId = '';
+
+function openStudentModal(modalId) {
+  document.getElementById(modalId).style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeStudentModal(modalId) {
+  document.getElementById(modalId).style.display = 'none';
+  document.body.style.overflow = 'auto';
+}
+
+function openEditModal(id, name, email, matricule) {
+  document.getElementById('edit-name').value = name;
+  document.getElementById('edit-email').value = email;
+  document.getElementById('edit-matricule').value = matricule;
+  document.getElementById('edit-form').action = "{{ url_for('students.update', student_id=0) }}".replace('0', id);
+  openStudentModal('modal-edit');
+}
+
+function confirmDeleteStudent(actionUrl, rowId, studentName) {
+  deleteStudentUrl = actionUrl;
+  deleteStudentRowId = rowId;
+  document.getElementById('delete-student-message').innerHTML = `Voulez-vous vraiment supprimer <strong class="text-red-600">${studentName}</strong> ? Cette action est irréversible.`;
+  document.getElementById('delete-student-form').action = actionUrl;
+  document.getElementById('modal-delete-student').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDeleteStudentModal() {
+  document.getElementById('modal-delete-student').style.display = 'none';
+  document.body.style.overflow = 'auto';
+}
+
+// Close modals when clicking outside
+document.querySelectorAll('.fixed').forEach(modal => {
+  modal.addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+  });
+});
+
+// Handle form submissions
+document.getElementById('create-student-form')?.addEventListener('submit', function(e) {
+  const btn = document.getElementById('create-student-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Ajout...';
+});
+
+document.getElementById('edit-form')?.addEventListener('submit', function(e) {
+  const btn = document.getElementById('edit-submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Enregistrement...';
+});
+
+document.getElementById('delete-student-form')?.addEventListener('submit', function(e) {
+  const btn = document.getElementById('delete-student-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Suppression...';
+});
+</script>
+
+{% endblock %}
